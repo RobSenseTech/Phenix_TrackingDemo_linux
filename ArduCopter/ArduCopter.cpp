@@ -90,7 +90,7 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
     SCHED_TASK(update_optical_flow,  200,    160),
 #endif
 #if CONFIG_SMART_CAMERA    //zing_modi
-    SCHED_TASK(update_smart_camera,   10,   140), //zing_todo 调用频率没有计算
+    SCHED_TASK(update_smart_camera,   10,   250), //zing_todo 调用频率没有计算 0.200ms左右 给0.250ms 合适
 #endif
     SCHED_TASK(update_batt_compass,   10,    120),
     SCHED_TASK(read_aux_switches,     10,     50),

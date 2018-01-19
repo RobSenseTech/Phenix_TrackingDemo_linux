@@ -1,6 +1,6 @@
 #include "Copter.h"
 #include <stdio.h> //zing_debug 可以使用print函数
-
+#include <time.h> //zing_debug 
 void Copter::init_barometer(bool full_calibration)
 {
     gcs().send_text(MAV_SEVERITY_INFO, "Calibrating barometer");
@@ -195,6 +195,8 @@ void Copter::init_smart_camera()
 void Copter::update_smart_camera(void) 
 {   
     //printf("SmartCemera update \n");//zing_debug
+
+    //clock_t start = clock();
     if(init_smart_camera_success)
     {
         static bool bAutoWbOn = false;
@@ -203,7 +205,9 @@ void Copter::update_smart_camera(void)
             bAutoWbOn = bCtlOn;
             smartcamera.set_whitebalance(bAutoWbOn);
         }
+        
         smartcamera.update();
+        
         camera_tracker_x = smartcamera.read_target_x();
         camera_tracker_y = smartcamera.read_target_y();
         camera_ALIVE = smartcamera.read_camera_ALIVE();//zing_modi
@@ -213,6 +217,8 @@ void Copter::update_smart_camera(void)
         //zing_note 更新相机位移
         //hal.uartA->printf("zing_sensors%d,%d \n",camera_tracker_x,camera_tracker_y );   
     }
+    //clock_t ends = clock();
+    //printf("zing_debug usetime %f \n",(double)(ends-start)/CLOCKS_PER_SEC*1000 );
 }
 #endif 
 

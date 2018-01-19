@@ -45,7 +45,7 @@ bool SmartCamera::init(void)
 //zing_modi 读取摄像头数据
 void SmartCamera::update(void)
 {   
-    //printf("zing_debug camera_update \n");
+    printf("zing_debug camera_update \n");
     if (num_instances == 0) {
         return;
     }
@@ -70,7 +70,7 @@ void SmartCamera::update(void)
 
         int mode = 0; int targx = 0, targy = 0;
         while (tok){
-            //printf("zing_debug camera %s \n",tok); //zing_debug
+            printf("zing_debug camera %s \n",tok); //zing_debug
             switch (mode){
                 case 0:
                 if (strcmp(tok, "T2") == 0) mode = 1;

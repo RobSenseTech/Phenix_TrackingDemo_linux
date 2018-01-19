@@ -3,5 +3,6 @@
         "associative_base": "cpp",
         "ios": "cpp",
         "*.tcc": "cpp"
-    }
+    },
+    "git.ignoreLimitWarning": true
 }
