@@ -1,4 +1,5 @@
 #include "Copter.h"
+#include <stdio.h> //zing_debug 可以使用print函数
 
 void Copter::init_barometer(bool full_calibration)
 {
@@ -178,6 +179,42 @@ void Copter::update_optical_flow(void)
     }
 }
 #endif  // OPTFLOW == ENABLED
+
+
+#if CONFIG_SMART_CAMERA == ENABLED   //zing_modi
+
+void Copter::init_smart_camera()
+{   
+    //printf("SmartCemera init \n");//zing_debug
+    init_smart_camera_success = smartcamera.init();
+}
+#endif
+
+#if CONFIG_SMART_CAMERA == ENABLED
+
+void Copter::update_smart_camera(void) 
+{   
+    //printf("SmartCemera update \n");//zing_debug
+    if(init_smart_camera_success)
+    {
+        static bool bAutoWbOn = false;
+        bool bCtlOn = read_3pos_switch(7) == 0 ? false : true;
+        if (bAutoWbOn != bCtlOn){
+            bAutoWbOn = bCtlOn;
+            smartcamera.set_whitebalance(bAutoWbOn);
+        }
+        smartcamera.update();
+        camera_tracker_x = smartcamera.read_target_x();
+        camera_tracker_y = smartcamera.read_target_y();
+        camera_ALIVE = smartcamera.read_camera_ALIVE();//zing_modi
+        
+            
+
+        //zing_note 更新相机位移
+        //hal.uartA->printf("zing_sensors%d,%d \n",camera_tracker_x,camera_tracker_y );   
+    }
+}
+#endif 
 
 // read_battery - check battery voltage and current and invoke failsafe if necessary
 // called at 10hz

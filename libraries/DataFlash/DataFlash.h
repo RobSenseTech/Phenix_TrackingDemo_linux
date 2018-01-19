@@ -23,8 +23,9 @@
 #include <AP_Beacon/AP_Beacon.h>
 #include <AP_Proximity/AP_Proximity.h>
 #include <AP_InertialSensor/AP_InertialSensor_Backend.h>
-
 #include <stdint.h>
+
+#include <AP_Camera/AP_SmartCamera.h>//zing_modi
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_PX4
 #include <uORB/topics/esc_status.h>
@@ -134,6 +135,9 @@ public:
     void Log_Write_MessageF(const char *fmt, ...);
     void Log_Write_CameraInfo(enum LogMessages msg, const AP_AHRS &ahrs, const Location &current_loc);
     void Log_Write_Camera(const AP_AHRS &ahrs, const Location &current_loc);
+
+    void Log_Write_SMART_CAMERA(const SmartCamera &smart_camera); // zing_modi
+
     void Log_Write_Trigger(const AP_AHRS &ahrs, const Location &current_loc);
     void Log_Write_ESC(void);
     void Log_Write_Airspeed(AP_Airspeed &airspeed);

@@ -17,6 +17,7 @@
 #include "AP_RangeFinder_LightWareSerial.h"
 #include <AP_SerialManager/AP_SerialManager.h>
 #include <ctype.h>
+#include <stdio.h> //zing_debug 可以使用print函数
 
 extern const AP_HAL::HAL& hal;
 
@@ -32,6 +33,7 @@ AP_RangeFinder_LightWareSerial::AP_RangeFinder_LightWareSerial(RangeFinder::Rang
     uart = serial_manager.find_serial(AP_SerialManager::SerialProtocol_Lidar, 0);
     if (uart != nullptr) {
         uart->begin(serial_manager.find_baudrate(AP_SerialManager::SerialProtocol_Lidar, 0));
+        //printf("zing_debug_botelv %d",serial_manager.find_baudrate(AP_SerialManager::SerialProtocol_Lidar, 0));
     }
 }
 
@@ -46,7 +48,7 @@ bool AP_RangeFinder_LightWareSerial::detect(AP_SerialManager &serial_manager)
 }
 
 // read - return last value measured by sensor
-bool AP_RangeFinder_LightWareSerial::get_reading(uint16_t &reading_cm)
+/*bool AP_RangeFinder_LightWareSerial::get_reading(uint16_t &reading_cm)
 {
     if (uart == nullptr) {
         return false;
@@ -79,6 +81,94 @@ bool AP_RangeFinder_LightWareSerial::get_reading(uint16_t &reading_cm)
         return false;
     }
     reading_cm = 100 * sum / count;
+    return true;
+}*/
+bool AP_RangeFinder_LightWareSerial::get_reading(uint16_t &reading_cm)
+{
+    if (uart == nullptr) {
+        return false;
+    }
+    // read any available lines from the lidar
+    int16_t sum = 0;
+    int32_t distance_sum = 0;
+    //int16_t strength;
+    int8_t byte_count = 0;
+    char state_switch = 0;
+    int16_t count = 0;
+    int16_t nbytes = uart->available();//缓冲区字节数
+    unsigned char byte[9];
+    
+    
+    //hal.uartA->printf("zing-c  %x\n", c);
+    while (nbytes-- > 0) 
+    {
+        unsigned char c = uart->read();   
+        //printf("zing_debug c %x \n",c);
+        switch (state_switch)
+        {
+            case 0://检测第一个帧头
+                if(c == 0x59)
+                {         
+                    byte[byte_count] = c;
+                    sum = sum + byte[byte_count];
+                    byte_count = byte_count + 1;
+                    state_switch = 1;
+                }
+                else
+                {
+                    byte_count = 0;
+                    sum = 0;
+                    state_switch = 0;
+                }
+                break;
+            case 1://检测第二个帧头
+                if(c == 0x59)
+                {
+                    byte[byte_count] = c;
+                    sum = sum + byte[byte_count];
+                    byte_count = byte_count + 1;
+                    state_switch = 2;
+                }
+                else
+                {
+                    byte_count = 0;
+                    sum = 0;
+                    state_switch = 0;
+                }
+                break;
+            case 2://读取数据字节
+                byte[byte_count] = c;
+                sum = sum + byte[byte_count];
+                byte_count = byte_count + 1;
+                if(byte_count == 8)//zing 7 
+                {
+                    state_switch = 3;
+                }
+                break;
+            case 3://校验
+                if((sum & 0xff) == c)
+                {
+                    distance_sum = distance_sum + ((int16_t(byte[3]) <<8) | int16_t(byte[2]));
+                    //strength = (byte[5] << 8) |  byte[4];
+                    count = count + 1;
+
+                    //hal.uartA->printf("zing-c  %x\n", reading_cm);
+                }
+                else
+                {
+                    byte_count = 0;
+                    sum = 0;
+                    state_switch = 0;
+                }
+                break;
+        }
+    }
+    if(count == 0)
+    {
+        return false;
+    }
+    reading_cm = distance_sum/count;
+    //printf("zing_debug reading_cm %d \n",reading_cm);//zing_debug
     return true;
 }
 

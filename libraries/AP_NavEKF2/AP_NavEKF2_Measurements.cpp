@@ -51,6 +51,7 @@ void NavEKF2_core::readRangeFinder(void)
                 }
                 storedRngMeasTime_ms[sensorIndex][rngMeasIndex[sensorIndex]] = imuSampleTime_ms - 25;
                 storedRngMeas[sensorIndex][rngMeasIndex[sensorIndex]] = sensor->distance_cm() * 0.01f;
+                //printf("zing_debug %d \n",sensor->distance_cm());//zing_debug
             }
 
             // check for three fresh samples
@@ -83,7 +84,7 @@ void NavEKF2_core::readRangeFinder(void)
 
                 // limit the measured range to be no less than the on-ground range
                 rangeDataNew.rng = MAX(storedRngMeas[sensorIndex][midIndex],rngOnGnd);
-
+                //printf("zing_debug rangeDataNew%f \n",rangeDataNew.rng);//zing_debug
                 // get position in body frame for the current sensor
                 rangeDataNew.sensor_idx = sensorIndex;
 

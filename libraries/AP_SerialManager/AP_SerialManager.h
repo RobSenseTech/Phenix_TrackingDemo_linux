@@ -32,7 +32,7 @@
 #ifdef HAL_SERIAL0_BAUD_DEFAULT
 # define AP_SERIALMANAGER_CONSOLE_BAUD          HAL_SERIAL0_BAUD_DEFAULT
 #else
-# define AP_SERIALMANAGER_CONSOLE_BAUD          115200
+# define AP_SERIALMANAGER_CONSOLE_BAUD          57600 //zing_debug 115200
 #endif
 # define AP_SERIALMANAGER_CONSOLE_BUFSIZE_RX    128
 # define AP_SERIALMANAGER_CONSOLE_BUFSIZE_TX    512
@@ -104,7 +104,8 @@ public:
         SerialProtocol_Aerotenna_uLanding      = 12, // Ulanding support
         SerialProtocol_Beacon = 13,
         SerialProtocol_Volz = 14,                    // Volz servo protocol
-        SerialProtocol_Sbus1 = 15
+        SerialProtocol_Sbus1 = 15,
+        SerialProtocol_SmartCamera = 16,
     };
 
     // get singleton instance

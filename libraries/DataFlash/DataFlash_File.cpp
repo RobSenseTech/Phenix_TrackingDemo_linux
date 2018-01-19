@@ -43,7 +43,7 @@
 #include <AP_Math/AP_Math.h>
 #include <GCS_MAVLink/GCS.h>
 
-
+#include <AP_Camera/AP_SmartCamera.h>//zing_modi
 extern const AP_HAL::HAL& hal;
 
 #define MAX_LOG_FILES 500U

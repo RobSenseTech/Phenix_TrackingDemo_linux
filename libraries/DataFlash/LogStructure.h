@@ -1035,6 +1035,14 @@ struct PACKED log_DSTL {
     float D;
 };
 
+struct PACKED log_SmartCamera {   //zing_modi
+  LOG_PACKET_HEADER;
+  uint64_t time_us;
+  int16_t  track_x;
+  int16_t  track_y;
+  uint8_t  status;
+  uint8_t  ALIVE;
+};
 // #endif // SBP_HW_LOGGING
 
 // FMT messages define all message formats other than FMT
@@ -1218,7 +1226,9 @@ Format characters in the format string for binary log messages
     { LOG_PROXIMITY_MSG, sizeof(log_Proximity), \
       "PRX", "QBfffffffffff", "TimeUS,Health,D0,D45,D90,D135,D180,D225,D270,D315,DUp,CAn,CDis", "s-mmmmmmmmmhm", "F-BBBBBBBBB00" }, \
     { LOG_SRTL_MSG, sizeof(log_SRTL), \
-      "SRTL", "QBHHBfff", "TimeUS,Active,NumPts,MaxPts,Action,N,E,D", "s----mmm", "F----000" }
+      "SRTL", "QBHHBfff", "TimeUS,Active,NumPts,MaxPts,Action,N,E,D", "s----mmm", "F----000" } ,\
+    { LOG_SMART_CAMERA, sizeof(log_SmartCamera),\
+      "STCA", "Qcbb", "TimeUS,Track_x,Track_y,Status,ALIVE"} //zing_modi 
 
 // messages for more advanced boards
 #define LOG_EXTRA_STRUCTURES \
@@ -1525,7 +1535,7 @@ enum LogMessages {
     LOG_ISBH_MSG,
     LOG_ISBD_MSG,
     LOG_ASP2_MSG,
-
+    LOG_SMART_CAMERA,//zing_modi
 };
 
 enum LogOriginType {

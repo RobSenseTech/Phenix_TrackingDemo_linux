@@ -82,4 +82,6 @@ void AP_RangeFinder_Backend::update_pre_arm_check()
          ((int16_t)state.pre_arm_distance_min > (MIN(state.ground_clearance_cm,state.min_distance_cm) - 10))) {
         state.pre_arm_check = true;
     }
+    //zing_modi 关闭雷达动态检测
+    //state.pre_arm_check = true;
 }

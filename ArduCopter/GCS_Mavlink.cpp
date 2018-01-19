@@ -146,11 +146,11 @@ void NOINLINE Copter::send_location(mavlink_channel_t chan)
     }
     const Vector3f &vel = inertial_nav.get_velocity();
     mavlink_msg_global_position_int_send(
-        chan,
-        fix_time,
-        current_loc.lat,                // in 1E7 degrees
-        current_loc.lng,                // in 1E7 degrees
-        (ahrs.get_home().alt + current_loc.alt) * 10UL,      // millimeters above sea level
+        chan,                   //                   //zing_modi
+        fix_time,            //zing_modi
+        copter.camera_tracker_x,//current_loc.lat,   //zing_modi zing_note给地面在发送 摄像头信息       
+        copter.camera_tracker_y,//current_loc.lng,            
+        copter.camera_ALIVE, //(ahrs.get_home().alt + current_loc.alt) * 10UL,      // millimeters above sea level
         current_loc.alt * 10,           // millimeters above ground
         vel.x,                          // X speed cm/s (+ve North)
         vel.y,                          // Y speed cm/s (+ve East)

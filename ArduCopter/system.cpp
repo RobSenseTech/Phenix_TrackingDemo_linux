@@ -163,6 +163,9 @@ void Copter::init_ardupilot()
     ahrs.set_optflow(&optflow);
 #endif
 
+#if CONFIG_SMART_CAMERA == ENABLED  //zing_modi
+     init_smart_camera();
+#endif 
     // init Location class
     Location_Class::set_ahrs(&ahrs);
 #if AP_TERRAIN_AVAILABLE && AC_TERRAIN

@@ -89,12 +89,15 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
 #if OPTFLOW == ENABLED
     SCHED_TASK(update_optical_flow,  200,    160),
 #endif
+#if CONFIG_SMART_CAMERA    //zing_modi
+    SCHED_TASK(update_smart_camera,   10,   140), //zing_todo 调用频率没有计算
+#endif
     SCHED_TASK(update_batt_compass,   10,    120),
     SCHED_TASK(read_aux_switches,     10,     50),
     SCHED_TASK(arm_motors_check,      10,     50),
     SCHED_TASK(auto_disarm_check,     10,     50),
     SCHED_TASK(auto_trim,             10,     75),
-    SCHED_TASK(read_rangefinder,      20,    100),
+    SCHED_TASK(read_rangefinder,      20,    100),//zing_modi 20 to 40
     SCHED_TASK(update_proximity,     100,     50),
     SCHED_TASK(update_beacon,        400,     50),
     SCHED_TASK(update_visual_odom,   400,     50),
@@ -354,6 +357,10 @@ void Copter::update_batt_compass(void)
         if (should_log(MASK_LOG_COMPASS) && !ahrs.have_ekf_logging()) {
             DataFlash.Log_Write_Compass(compass);
         }
+    }
+    if (CONFIG_SMART_CAMERA == ENABLED /*&& init_smart_camera_success*/) //zing_modi 记录日志
+    {
+        DataFlash.Log_Write_SMART_CAMERA(smartcamera);
     }
 }
 

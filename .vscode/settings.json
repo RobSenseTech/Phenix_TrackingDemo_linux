@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "associative_base": "cpp",
+        "ios": "cpp",
+        "*.tcc": "cpp"
+    }
+}

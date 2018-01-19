@@ -96,7 +96,7 @@
 #include <AP_SmartRTL/AP_SmartRTL.h>
 #include <AP_WheelEncoder/AP_WheelEncoder.h>
 #include <AP_Winch/AP_Winch.h>
-
+#include <AP_Camera/AP_SmartCamera.h> //zing_modi
 // Configuration
 #include "defines.h"
 #include "config.h"
@@ -237,7 +237,10 @@ private:
 #if OPTFLOW == ENABLED
     OpticalFlow optflow{ahrs};
 #endif
-
+    //zing_modi
+#if CONFIG_SMART_CAMERA == ENABLED  
+    SmartCamera smartcamera {serial_manager};
+#endif
     // gnd speed limit required to observe optical flow sensor limits
     float ekfGndSpdLimit;
 
@@ -472,6 +475,14 @@ private:
 
     // Used to exit the roll and pitch auto trim function
     uint8_t auto_trim_counter;
+
+
+    int camera_tracker_x;   //zing_modi
+    int camera_tracker_y;   //zing_modi
+
+    bool camera_ALIVE;     //zing_modi
+
+
 
     // Reference to the relay object
     AP_Relay relay;
@@ -857,6 +868,10 @@ private:
     void compass_accumulate(void);
     void init_optflow();
     void update_optical_flow(void);
+
+    void init_smart_camera();  //zing_modi
+    void update_smart_camera(); //zing_modi
+
     void read_battery(void);
     void read_receiver_rssi(void);
     void compass_cal_update(void);
@@ -973,6 +988,9 @@ private:
 public:
     void mavlink_delay_cb();    // GCS_Mavlink.cpp
     void failsafe_check();      // failsafe.cpp
+
+    bool init_smart_camera_success;     //zing_modi
+
 };
 
 extern const AP_HAL::HAL& hal;

@@ -53,6 +53,13 @@ Copter::Copter(void)
     auto_trim_counter(0),
     in_mavlink_delay(false),
     param_loader(var_info),
+
+    camera_tracker_x(0),  //zing_modi
+    camera_tracker_y(0),  //zing_modi
+    init_smart_camera_success(false),  //zing_modi
+    
+    camera_ALIVE(false),//zing_modi
+
     flightmode(&mode_stabilize)
 {
     memset(&current_loc, 0, sizeof(current_loc));

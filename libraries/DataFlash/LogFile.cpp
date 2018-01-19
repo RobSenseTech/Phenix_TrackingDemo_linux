@@ -17,6 +17,8 @@
 #include "DataFlash_MAVLink.h"
 #include "DFMessageWriter.h"
 
+#include <AP_Camera/AP_SmartCamera.h>//zing_modi
+
 extern const AP_HAL::HAL& hal;
 
 
@@ -1924,4 +1926,18 @@ void DataFlash_Class::Log_Write_SRTL(bool active, uint16_t num_points, uint16_t 
         D               : breadcrumb.z
     };
     WriteBlock(&pkt_srtl, sizeof(pkt_srtl));
+}
+
+//zing_modi
+void DataFlash_Class::Log_Write_SMART_CAMERA(const SmartCamera &smart_camera)
+{
+    struct log_SmartCamera pkt = {
+        LOG_PACKET_HEADER_INIT(LOG_SMART_CAMERA),
+        time_us     : AP_HAL::micros64(),
+        track_x     : smart_camera.state.target_x,
+        track_y     : smart_camera.state.target_y,
+        status      : smart_camera.state.status,
+        ALIVE       : smart_camera.state.bALIVE
+    };
+    WriteBlock(&pkt, sizeof(pkt));
 }

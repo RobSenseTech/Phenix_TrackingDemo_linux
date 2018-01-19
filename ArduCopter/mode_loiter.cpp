@@ -189,6 +189,17 @@ void Copter::ModeLoiter::run()
         }
 #endif
 
+#if CONFIG_SMART_CAMERA == ENABLED  
+        //相机的x轴是左右， y轴是上下  左右只需要x
+        // run loiter controller
+         float delt_len = copter.camera_tracker_x * 0.2 / 1000;//为什么需要加copter. 而之前不用？
+         pos_control->shift_pos_xy_target(delt_len * -1 * ahrs.sin_yaw(), delt_len * ahrs.cos_yaw());
+         //机体坐标系 转换到北东地坐标系
+         //pos_control->shift_pos_xy_target(camera_tracker_x, camera_tracker_y);
+         //zing_q 用-> 什么意思？为什么要用？
+         //hal.uartA->printf("zing_loiter \n" );
+#endif    
+
         // run loiter controller
         wp_nav->update_loiter(ekfGndSpdLimit, ekfNavVelGainScaler);
 

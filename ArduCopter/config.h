@@ -222,6 +222,13 @@
 # define VISUAL_ODOMETRY_ENABLED ENABLED
 #endif
 
+
+// SmartCamera   zing_modi
+//
+#ifndef CONFIG_SMART_CAMERA
+ # define CONFIG_SMART_CAMERA ENABLED
+#endif
+
 //////////////////////////////////////////////////////////////////////////////
 //  Auto Tuning
 #ifndef AUTOTUNE_ENABLED
