@@ -45,7 +45,7 @@ bool SmartCamera::init(void)
 //zing_modi 读取摄像头数据
 void SmartCamera::update(void)
 {   
-    printf("zing_debug camera_update \n");
+    //printf("zing_debug camera_update \n");
     if (num_instances == 0) {
         return;
     }

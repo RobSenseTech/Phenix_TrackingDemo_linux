@@ -2,7 +2,12 @@
     "files.associations": {
         "associative_base": "cpp",
         "ios": "cpp",
-        "*.tcc": "cpp"
+        "*.tcc": "cpp",
+        "string": "cpp",
+        "vector": "cpp",
+        "array": "cpp",
+        "iterator": "cpp",
+        "istream": "cpp"
     },
     "git.ignoreLimitWarning": true
 }

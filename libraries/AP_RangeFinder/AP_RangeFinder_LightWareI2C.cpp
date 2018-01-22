@@ -64,7 +64,7 @@ void AP_RangeFinder_LightWareI2C::init()
 {
     // call timer() at 20Hz
     _dev->register_periodic_callback(50000,
-                                     FUNCTOR_BIND_MEMBER(&AP_RangeFinder_LightWareI2C::timer, void));
+                                    FUNCTOR_BIND_MEMBER(&AP_RangeFinder_LightWareI2C::timer, void));
 }
 
 // read - return last value measured by sensor

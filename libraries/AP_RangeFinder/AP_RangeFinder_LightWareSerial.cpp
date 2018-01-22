@@ -19,15 +19,16 @@
 #include <ctype.h>
 #include <stdio.h> //zing_debug 可以使用print函数
 
+#define byte unsigned char
 extern const AP_HAL::HAL& hal;
 
 /* 
-   The constructor also initialises the rangefinder. Note that this
-   constructor is not called until detect() returns true, so we
-   already know that we should setup the rangefinder
+    The constructor also initialises the rangefinder. Note that this
+    constructor is not called until detect() returns true, so we
+    already know that we should setup the rangefinder
 */
 AP_RangeFinder_LightWareSerial::AP_RangeFinder_LightWareSerial(RangeFinder::RangeFinder_State &_state,
-                                                               AP_SerialManager &serial_manager) :
+                                                            AP_SerialManager &serial_manager) :
     AP_RangeFinder_Backend(_state)
 {
     uart = serial_manager.find_serial(AP_SerialManager::SerialProtocol_Lidar, 0);
@@ -38,9 +39,9 @@ AP_RangeFinder_LightWareSerial::AP_RangeFinder_LightWareSerial(RangeFinder::Rang
 }
 
 /* 
-   detect if a Lightware rangefinder is connected. We'll detect by
-   trying to take a reading on Serial. If we get a result the sensor is
-   there.
+    detect if a Lightware rangefinder is connected. We'll detect by
+    trying to take a reading on Serial. If we get a result the sensor is
+    there.
 */
 bool AP_RangeFinder_LightWareSerial::detect(AP_SerialManager &serial_manager)
 {
@@ -83,92 +84,211 @@ bool AP_RangeFinder_LightWareSerial::detect(AP_SerialManager &serial_manager)
     reading_cm = 100 * sum / count;
     return true;
 }*/
-bool AP_RangeFinder_LightWareSerial::get_reading(uint16_t &reading_cm)
+// bool AP_RangeFinder_LightWareSerial::get_reading(uint16_t &reading_cm)
+// {
+//     if (uart == nullptr) {
+//         return false;
+//     }
+//     // read any available lines from the lidar
+//     int16_t sum = 0;
+//     int32_t distance_sum = 0;
+//     //int16_t strength;
+//     int8_t byte_count = 0;
+//     char state_switch = 0;
+//     int16_t count = 0;
+//     int16_t nbytes = uart->available();//缓冲区字节数
+//     unsigned char byte[9];
+    
+    
+//     //hal.uartA->printf("zing-c  %x\n", c);
+//     while (nbytes-- > 0) 
+//     {
+//         unsigned char c = uart->read();   
+//         //printf("zing_debug c %x \n",c);
+//         switch (state_switch)
+//         {
+//             case 0://检测第一个帧头
+//                 if(c == 0x59)
+//                 {         
+//                     byte[byte_count] = c;
+//                     sum = sum + byte[byte_count];
+//                     byte_count = byte_count + 1;
+//                     state_switch = 1;
+//                 }
+//                 else
+//                 {
+//                     byte_count = 0;
+//                     sum = 0;
+//                     state_switch = 0;
+//                 }
+//                 break;
+//             case 1://检测第二个帧头
+//                 if(c == 0x59)
+//                 {
+//                     byte[byte_count] = c;
+//                     sum = sum + byte[byte_count];
+//                     byte_count = byte_count + 1;
+//                     state_switch = 2;
+//                 }
+//                 else
+//                 {
+//                     byte_count = 0;
+//                     sum = 0;
+//                     state_switch = 0;
+//                 }
+//                 break;
+//             case 2://读取数据字节
+//                 byte[byte_count] = c;
+//                 sum = sum + byte[byte_count];
+//                 byte_count = byte_count + 1;
+//                 if(byte_count == 8)//zing 7 
+//                 {
+//                     state_switch = 3;
+//                 }
+//                 break;
+//             case 3://校验
+//                 if((sum & 0xff) == c)
+//                 {
+//                     distance_sum = distance_sum + ((int16_t(byte[3]) <<8) | int16_t(byte[2]));
+//                     //strength = (byte[5] << 8) |  byte[4];
+//                     count = count + 1;
+
+//                     //hal.uartA->printf("zing-c  %x\n", reading_cm);
+//                 }
+//                 else
+//                 {
+//                     byte_count = 0;
+//                     sum = 0;
+//                     state_switch = 0;
+//                 }
+//                 break;
+//         }
+//     }
+//     if(count == 0)
+//     {
+//         return false;
+//     }
+//     reading_cm = distance_sum/count;
+//     //printf("zing_debug reading_cm %d \n",reading_cm);//zing_debug
+//     return true;
+// }
+
+
+/*********************************************************************************************
+厂家提供
+功能: 校验字节生成函数
+传入参数: 待校验数据，校验长度
+**********************************************************************************************/
+uint16_t Crc16ValueCalc(const uint8_t *Data,uint16_t length)
 {
+	    int16_t i;
+	    uint16_t crcValue = 0xffff;
+	    
+	    while (length --) 
+		{
+	        crcValue ^= (uint16_t)*(Data ++);
+	        for (i = 7; i >= 0; i --) 
+			{
+	            crcValue = (crcValue & 0x0001) ?  ((crcValue >> 1)^0xa001) : (crcValue >> 1);
+	        }
+	    }
+	    
+	    return crcValue;
+}
+
+
+//zing_modi L10雷达读取
+bool AP_RangeFinder_LightWareSerial::get_reading(uint16_t &reading_cm){
     if (uart == nullptr) {
         return false;
     }
-    // read any available lines from the lidar
-    int16_t sum = 0;
-    int32_t distance_sum = 0;
-    //int16_t strength;
-    int8_t byte_count = 0;
-    char state_switch = 0;
-    int16_t count = 0;
-    int16_t nbytes = uart->available();//缓冲区字节数
-    unsigned char byte[9];
-    
-    
-    //hal.uartA->printf("zing-c  %x\n", c);
-    while (nbytes-- > 0) 
-    {
-        unsigned char c = uart->read();   
-        //printf("zing_debug c %x \n",c);
-        switch (state_switch)
-        {
-            case 0://检测第一个帧头
-                if(c == 0x59)
-                {         
-                    byte[byte_count] = c;
-                    sum = sum + byte[byte_count];
-                    byte_count = byte_count + 1;
-                    state_switch = 1;
-                }
-                else
-                {
-                    byte_count = 0;
-                    sum = 0;
-                    state_switch = 0;
-                }
-                break;
-            case 1://检测第二个帧头
-                if(c == 0x59)
-                {
-                    byte[byte_count] = c;
-                    sum = sum + byte[byte_count];
-                    byte_count = byte_count + 1;
-                    state_switch = 2;
-                }
-                else
-                {
-                    byte_count = 0;
-                    sum = 0;
-                    state_switch = 0;
-                }
-                break;
-            case 2://读取数据字节
-                byte[byte_count] = c;
-                sum = sum + byte[byte_count];
-                byte_count = byte_count + 1;
-                if(byte_count == 8)//zing 7 
-                {
-                    state_switch = 3;
-                }
-                break;
-            case 3://校验
-                if((sum & 0xff) == c)
-                {
-                    distance_sum = distance_sum + ((int16_t(byte[3]) <<8) | int16_t(byte[2]));
-                    //strength = (byte[5] << 8) |  byte[4];
-                    count = count + 1;
+    uint64_t tmp = 0;
+    int16_t Lidar_cm_sum=0,Lidar_data_count=0,nbytes = uart->available();//缓冲区字节数
+    uint8_t state_switch=0,crc[6]={0};
+    uint8_t i=0;
+    char Lidar_L10_data_Raw[19]={0};
+    char *Lidar_L10_data;
+    char *stop = NULL;
+    struct Lidar_frame Lidar_L10 = {0};
 
-                    //hal.uartA->printf("zing-c  %x\n", reading_cm);
+    while (nbytes-- > 0) {
+        //printf("nbytes=%d \n",nbytes);
+        unsigned char c = uart->read();
+        //printf("Lidar=%x \n",c);
+        switch (state_switch){
+            case 0://检测 ~
+                //printf("mode0 \n");
+                if(c == '~'){
+                    state_switch=1;
+                }else{
+                    state_switch=0;
                 }
-                else
-                {
-                    byte_count = 0;
-                    sum = 0;
-                    state_switch = 0;
+                break;
+            case 1://保存数组(没有～)
+                //printf("mode1 \n");
+                Lidar_L10_data_Raw[i]=c;
+                i++;
+                //printf("Lidar_L10_data_Raw=%x \n",Lidar_L10_data_Raw[i]);
+                if(i==18){
+                    if((int)Lidar_L10_data_Raw[17]==10){
+                        Lidar_L10_data = strtok(Lidar_L10_data_Raw,"\r\n");
+                        if(Lidar_L10_data==NULL)break;
+                        state_switch=2;
+                        i=0;
+                    }else{
+                        state_switch=0;
+                        i=0;
+                    }
                 }
+                break;
+            case 2://处理数据
+                //printf("mode2 \n");
+                //printf("Lidar_L10_data=%s \n",Lidar_L10_data);
+                tmp = strtoll(Lidar_L10_data,&stop,16);//字符串转换成数字 转换成16进制
+                //printf("tmp=%llx \n",tmp);
+                //Lidar_L10_frame.head = data[0];
+                //Lidar_L10_frame.head = data[0];
+                Lidar_L10.dev_addr = (tmp >> 56) & 0xff;
+                Lidar_L10.cmd = (tmp >> 48) & 0xff;
+                Lidar_L10.reg = (tmp >> 32) & 0xffff;
+                Lidar_L10.reg_H = (uint8_t)(Lidar_L10.reg >> 8);
+                Lidar_L10.reg_L = (uint8_t)Lidar_L10.reg; 
+                Lidar_L10.data = (tmp >> 16) & 0xffff;
+                Lidar_L10.data_H = (uint8_t)(Lidar_L10.data >> 8);
+                Lidar_L10.data_L = (uint8_t)Lidar_L10.data; 
+                Lidar_L10.crc = (tmp) & 0xffff;//高8位 低8位是反的
+                
+                crc[0]=Lidar_L10.dev_addr;
+                crc[1]=Lidar_L10.cmd;
+                crc[2]=Lidar_L10.reg_H;
+                crc[3]=Lidar_L10.reg_L;
+                crc[4]=Lidar_L10.data_H;
+                crc[5]=Lidar_L10.data_L;
+                
+                //printf("crc%s\n",&crc);
+                
+                
+                if(ntohs(Lidar_L10.crc)==Crc16ValueCalc(&crc[0],6)){
+                    //printf("true  \n");
+                    // for(int i=0;i<=5;i++){
+                    //     printf("crc[%d]=%x\n",i,crc[i]);
+                    // }
+                    Lidar_cm_sum+=(int)Lidar_L10.data;
+                    Lidar_data_count++;
+                    //printf("cm=%d ,count=%d",(int)Lidar_L10.data,Lidar_data_count);
+                }
+                state_switch=0;
                 break;
         }
+    //printf("Lidar_data_count0%d \n",Lidar_data_count);   
     }
-    if(count == 0)
-    {
+    //printf("Lidar_data_count1%d \n",Lidar_data_count);
+    if(Lidar_data_count==0){
         return false;
     }
-    reading_cm = distance_sum/count;
-    //printf("zing_debug reading_cm %d \n",reading_cm);//zing_debug
+    
+    reading_cm = (Lidar_cm_sum/10)/Lidar_data_count;
+    //printf("zing_debug reading_cm %ld %ld %d \n",reading_cm,Lidar_cm_sum,Lidar_data_count);//zing_debug
     return true;
 }
 
