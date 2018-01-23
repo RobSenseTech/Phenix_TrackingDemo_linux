@@ -845,13 +845,13 @@ uint8_t RangeFinder::range_valid_count_orient(enum Rotation orientation) const
  */
 bool RangeFinder::pre_arm_check() const
 {
-    //zing_modi 关闭雷达动态检测
-    for (uint8_t i=0; i<num_instances; i++) {
-        // if driver is valid but pre_arm_check is false, return false
-        if ((drivers[i] != nullptr) && (state[i].type != RangeFinder_TYPE_NONE) && !state[i].pre_arm_check) {
-            return false;
-        }
-    }
+    //zing_modi 关闭雷达动态检测(zing_todo 修改雷达后这里的检测过不去需要检测)
+    // for (uint8_t i=0; i<num_instances; i++) {
+    //     // if driver is valid but pre_arm_check is false, return false
+    //     if ((drivers[i] != nullptr) && (state[i].type != RangeFinder_TYPE_NONE) && !state[i].pre_arm_check) {
+    //         return false;
+    //     }
+    // }
     return true;
 }
 

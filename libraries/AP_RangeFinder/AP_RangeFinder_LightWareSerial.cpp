@@ -22,6 +22,8 @@
 #define byte unsigned char
 extern const AP_HAL::HAL& hal;
 
+uint16_t Lidar_data_count=0;
+
 /* 
     The constructor also initialises the rangefinder. Note that this
     constructor is not called until detect() returns true, so we
@@ -203,92 +205,79 @@ bool AP_RangeFinder_LightWareSerial::get_reading(uint16_t &reading_cm){
         return false;
     }
     uint64_t tmp = 0;
-    int16_t Lidar_cm_sum=0,Lidar_data_count=0,nbytes = uart->available();//缓冲区字节数
+    uint16_t Lidar_cm_sum=0,nbytes = uart->available();//缓冲区字节数
     uint8_t state_switch=0,crc[6]={0};
     uint8_t i=0;
-    char Lidar_L10_data_Raw[19]={0};
-    char *Lidar_L10_data;
+    char Lidar_L10_data_Raw[18]={0};
+    char *Lidar_L10_data=NULL;
     char *stop = NULL;
     struct Lidar_frame Lidar_L10 = {0};
 
     while (nbytes-- > 0) {
-        //printf("nbytes=%d \n",nbytes);
         unsigned char c = uart->read();
-        //printf("Lidar=%x \n",c);
+        //printf("switch c=:%x \n",c);
         switch (state_switch){
             case 0://检测 ~
-                //printf("mode0 \n");
+            //printf("modo0 \n");
                 if(c == '~'){
+                    i=0;
                     state_switch=1;
                 }else{
                     state_switch=0;
                 }
-                break;
+            break;
+
             case 1://保存数组(没有～)
-                //printf("mode1 \n");
+            //printf("modo1 c=%x  i=%d\n",c,i);
                 Lidar_L10_data_Raw[i]=c;
-                i++;
                 //printf("Lidar_L10_data_Raw=%x \n",Lidar_L10_data_Raw[i]);
-                if(i==18){
-                    if((int)Lidar_L10_data_Raw[17]==10){
-                        Lidar_L10_data = strtok(Lidar_L10_data_Raw,"\r\n");
-                        if(Lidar_L10_data==NULL)break;
-                        state_switch=2;
-                        i=0;
-                    }else{
-                        state_switch=0;
-                        i=0;
+                i++;               
+                if(i==18){ 
+                    i=0;
+                    state_switch=0;
+                    if((int)Lidar_L10_data_Raw[16]==13&&(int)Lidar_L10_data_Raw[17]==10){//结束位校验
+                        //Lidar_L10_data = strtok(Lidar_L10_data_Raw,"\r\n");                      
+                        //解析数据
+                        tmp = strtoll(Lidar_L10_data_Raw,&stop,16);//字符串转换成数字 转换成16进制 
+                        Lidar_L10.dev_addr = (tmp >> 56) & 0xff;
+                        Lidar_L10.cmd = (tmp >> 48) & 0xff;
+                        Lidar_L10.reg = (tmp >> 32) & 0xffff;
+                        Lidar_L10.reg_H = (uint8_t)(Lidar_L10.reg >> 8);
+                        Lidar_L10.reg_L = (uint8_t)Lidar_L10.reg; 
+                        Lidar_L10.data = (tmp >> 16) & 0xffff;
+                        Lidar_L10.data_H = (uint8_t)(Lidar_L10.data >> 8);
+                        Lidar_L10.data_L = (uint8_t)Lidar_L10.data; 
+                        Lidar_L10.crc = (tmp) & 0xffff;//高8位 低8位是反的
+                        crc[0]=Lidar_L10.dev_addr;
+                        crc[1]=Lidar_L10.cmd;
+                        crc[2]=Lidar_L10.reg_H;
+                        crc[3]=Lidar_L10.reg_L;
+                        crc[4]=Lidar_L10.data_H;
+                        crc[5]=Lidar_L10.data_L;
+                        //校验数据
+                        if( ntohs(Lidar_L10.crc) == Crc16ValueCalc(&crc[0],6) ){
+                            Lidar_cm_sum+=(int)Lidar_L10.data;
+                            Lidar_data_count++;
+                            //printf("cm=%d ,count=%d \n",(int)Lidar_L10.data,Lidar_data_count);
+                        }
                     }
                 }
-                break;
-            case 2://处理数据
-                //printf("mode2 \n");
-                //printf("Lidar_L10_data=%s \n",Lidar_L10_data);
-                tmp = strtoll(Lidar_L10_data,&stop,16);//字符串转换成数字 转换成16进制
-                //printf("tmp=%llx \n",tmp);
-                //Lidar_L10_frame.head = data[0];
-                //Lidar_L10_frame.head = data[0];
-                Lidar_L10.dev_addr = (tmp >> 56) & 0xff;
-                Lidar_L10.cmd = (tmp >> 48) & 0xff;
-                Lidar_L10.reg = (tmp >> 32) & 0xffff;
-                Lidar_L10.reg_H = (uint8_t)(Lidar_L10.reg >> 8);
-                Lidar_L10.reg_L = (uint8_t)Lidar_L10.reg; 
-                Lidar_L10.data = (tmp >> 16) & 0xffff;
-                Lidar_L10.data_H = (uint8_t)(Lidar_L10.data >> 8);
-                Lidar_L10.data_L = (uint8_t)Lidar_L10.data; 
-                Lidar_L10.crc = (tmp) & 0xffff;//高8位 低8位是反的
                 
-                crc[0]=Lidar_L10.dev_addr;
-                crc[1]=Lidar_L10.cmd;
-                crc[2]=Lidar_L10.reg_H;
-                crc[3]=Lidar_L10.reg_L;
-                crc[4]=Lidar_L10.data_H;
-                crc[5]=Lidar_L10.data_L;
-                
-                //printf("crc%s\n",&crc);
-                
-                
-                if(ntohs(Lidar_L10.crc)==Crc16ValueCalc(&crc[0],6)){
-                    //printf("true  \n");
-                    // for(int i=0;i<=5;i++){
-                    //     printf("crc[%d]=%x\n",i,crc[i]);
-                    // }
-                    Lidar_cm_sum+=(int)Lidar_L10.data;
-                    Lidar_data_count++;
-                    //printf("cm=%d ,count=%d",(int)Lidar_L10.data,Lidar_data_count);
-                }
-                state_switch=0;
-                break;
+            break;
         }
-    //printf("Lidar_data_count0%d \n",Lidar_data_count);   
+    //printf("count  %d \n",Lidar_data_count); 
+    //printf("Lidar_data_count0   %d \n",Lidar_data_count); 
     }
-    //printf("Lidar_data_count1%d \n",Lidar_data_count);
+    
     if(Lidar_data_count==0){
         return false;
     }
-    
+    //printf("Lidar_data_count       %d \n",Lidar_data_count);  
     reading_cm = (Lidar_cm_sum/10)/Lidar_data_count;
-    //printf("zing_debug reading_cm %ld %ld %d \n",reading_cm,Lidar_cm_sum,Lidar_data_count);//zing_debug
+    printf("zing_debug reading_cm %d   \n",reading_cm);//zing_debug
+    Lidar_data_count=0;
+    reading_cm=0;
+    Lidar_cm_sum=0;
     return true;
 }
 

@@ -7,7 +7,12 @@
         "vector": "cpp",
         "array": "cpp",
         "iterator": "cpp",
-        "istream": "cpp"
+        "istream": "cpp",
+        "algorithm": "cpp",
+        "hash_map": "cpp",
+        "hash_set": "cpp",
+        "bitset": "cpp",
+        "chrono": "cpp"
     },
     "git.ignoreLimitWarning": true
 }
