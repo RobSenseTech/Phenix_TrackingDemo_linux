@@ -70,6 +70,7 @@ void SmartCamera::update(void)
 
         int mode = 0; int targx = 0, targy = 0;
         while (tok){
+            //zing_todo  20180124 tok应该会一直有数据，while一直会循环，需要得到数据后退出，之后修改
             printf("zing_debug camera %s \n",tok); //zing_debug
             switch (mode){
                 case 0:
